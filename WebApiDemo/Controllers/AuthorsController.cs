@@ -142,6 +142,7 @@ namespace WebApiDemo.Controllers
         #endregion
 
         #region asynchronous code
+        //GET api/authors/getauthorsasync
         [HttpGet("GetAuthorsAsync")]
         public async Task<ActionResult<IEnumerable<AuthorReadDto>>>GetAuthorsAsync()
         {
@@ -150,6 +151,7 @@ namespace WebApiDemo.Controllers
             return authors != null ? Ok(_mapper.Map<IEnumerable<AuthorReadDto>>(authors)) : (ActionResult<IEnumerable<AuthorReadDto>>)NoContent();
         }
 
+        //GET api/authors/getauthorasync/id
         [HttpGet("GetAuthorAsync/{id}")]
         [ActionName(nameof(GetAuthorAsync))]         //solve no route matches the supplied values 
         public async Task<ActionResult<AuthorReadDto>> GetAuthorAsync(Guid id)
@@ -159,6 +161,7 @@ namespace WebApiDemo.Controllers
             return author != null ? Ok(_mapper.Map<AuthorReadDto>(author)) : (ActionResult<AuthorReadDto>)NotFound();
         }
 
+        //CREATE api/authors/createauthorsasync
         [HttpPost("CreateAuthorAsync")]
         public async Task<ActionResult<AuthorReadDto>> CreateAuthorAsync(AuthorCreateDto authorCreateDto)
         {
@@ -169,6 +172,7 @@ namespace WebApiDemo.Controllers
             return await _authorAPIRepository.SaveChangesAsync() ? CreatedAtAction(nameof(GetAuthorAsync), new { author.Id }, _mapper.Map<AuthorReadDto>(author)) : (ActionResult<AuthorReadDto>)NoContent();
         }
 
+        //PUT api/authors/updateauthorasync/async
         [HttpPut("UpdateAuthorAsync")]
         public async Task<ActionResult> UpdateAuthorAsync(Guid id, AuthorUpdateDto authorUpdateDto)
         {
@@ -187,6 +191,7 @@ namespace WebApiDemo.Controllers
             return NoContent();
         }
 
+        //PATCH api/authors/partialupdateauthorasync
         [HttpPatch("PartialUpdateAuthorAsync")]
         public async Task<ActionResult> ParialUpdateAuthorAsync(Guid id, JsonPatchDocument<AuthorUpdateDto> jsonPatchDocument)
         {
@@ -212,6 +217,7 @@ namespace WebApiDemo.Controllers
             return NoContent();
         }
 
+        //DELETE api/authors/deleteauthorsasync
         [HttpDelete("DeleteAuthorAsync")]
         public async Task<ActionResult> DeleteAuthorAsync(Guid id)
         {
