@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WebApiDemo.Models;
 
 namespace WebApiDemo.Data
@@ -19,9 +21,14 @@ namespace WebApiDemo.Data
             return _context.Books.ToList();
         }
 
+        public async Task<IEnumerable<Book>> GetBooksAsync()
+        {
+            return await _context.Books.Include(a => a.Author).ToListAsync();
+        }
+
         public Book GetBook(Guid id)
         {
-            return _context.Books.FirstOrDefault(i => i.Id == id);
+            return _context.Books.Include(i => i.Author).FirstOrDefault(i => i.Id == id);
         }
 
         public void CreateBook(Book book)
@@ -52,6 +59,26 @@ namespace WebApiDemo.Data
             }
 
             _context.Books.Remove(book);
+        }
+
+        public async Task<Book> GetBookAsync(Guid id)
+        {
+            if(id == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            return await _context.Books.Include(a => a.Author).FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync() >= 0;
+        }
+
+        public async Task UpdateBookAsync(Book book)
+        {
+
         }
     }
 }

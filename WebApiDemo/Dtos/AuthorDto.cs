@@ -12,6 +12,7 @@ namespace WebApiDemo.Dtos
         public string LastName { get; set; }
 
         [Required]
+        [Range(10,100)]
         public int Age { get; set; }
     }
 }

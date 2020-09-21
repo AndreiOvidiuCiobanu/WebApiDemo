@@ -11,7 +11,6 @@ namespace WebApiDemo.AutoMapper
         {
             CreateMap<Author, AuthorReadDto>();
             CreateMap<Book, BookReadDto>();
-            //CreateMap<BookCreateDto, Book>().ForSourceMember(i => i.AuthorId, o => new Guid());
             CreateMap<BookCreateDto, BookReadDto>();
             CreateMap<BookCreateDto, Book>();
             CreateMap<AuthorCreateDto, Author>();

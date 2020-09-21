@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +15,20 @@ namespace WebApiDemo.Controllers
     [ApiController]
     public class AuthorsController : ControllerBase
     {
+        #region declarations
         private readonly IAuthorAPIRepository _authorAPIRepository;
         private readonly IMapper _mapper;
+        #endregion
 
+        #region constructors
         public AuthorsController(IAuthorAPIRepository authorAPIRepository, IMapper mapper)
         {
             _authorAPIRepository = authorAPIRepository;
             _mapper = mapper;
         }
+        #endregion
 
+        #region synchronous code
         //GET api/authors
         [HttpGet]
         public ActionResult<IEnumerable<AuthorReadDto>> GetAllAuthors()
@@ -132,5 +139,94 @@ namespace WebApiDemo.Controllers
 
             return NoContent();
         }
+        #endregion
+
+        #region asynchronous code
+        [HttpGet("GetAuthorsAsync")]
+        public async Task<ActionResult<IEnumerable<AuthorReadDto>>>GetAuthorsAsync()
+        {
+            var authors = await _authorAPIRepository.GetAuthorsAsync();
+
+            return authors != null ? Ok(_mapper.Map<IEnumerable<AuthorReadDto>>(authors)) : (ActionResult<IEnumerable<AuthorReadDto>>)NoContent();
+        }
+
+        [HttpGet("GetAuthorAsync/{id}")]
+        [ActionName(nameof(GetAuthorAsync))]         //solve no route matches the supplied values 
+        public async Task<ActionResult<AuthorReadDto>> GetAuthorAsync(Guid id)
+        {
+            var author = await _authorAPIRepository.GetAuthorAsync(id);
+
+            return author != null ? Ok(_mapper.Map<AuthorReadDto>(author)) : (ActionResult<AuthorReadDto>)NotFound();
+        }
+
+        [HttpPost("CreateAuthorAsync")]
+        public async Task<ActionResult<AuthorReadDto>> CreateAuthorAsync(AuthorCreateDto authorCreateDto)
+        {
+            var author = _mapper.Map<Author>(authorCreateDto);
+
+            _authorAPIRepository.CreateAuthor(author);
+
+            return await _authorAPIRepository.SaveChangesAsync() ? CreatedAtAction(nameof(GetAuthorAsync), new { author.Id }, _mapper.Map<AuthorReadDto>(author)) : (ActionResult<AuthorReadDto>)NoContent();
+        }
+
+        [HttpPut("UpdateAuthorAsync")]
+        public async Task<ActionResult> UpdateAuthorAsync(Guid id, AuthorUpdateDto authorUpdateDto)
+        {
+            var author = await _authorAPIRepository.GetAuthorAsync(id);
+            if(author == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(authorUpdateDto, author);
+
+            await _authorAPIRepository.UpdateAuthorAsync(author);
+
+            await _authorAPIRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPatch("PartialUpdateAuthorAsync")]
+        public async Task<ActionResult> ParialUpdateAuthorAsync(Guid id, JsonPatchDocument<AuthorUpdateDto> jsonPatchDocument)
+        {
+            var author = await _authorAPIRepository.GetAuthorAsync(id);
+            if(author == null)
+            {
+                return NotFound();
+            }
+
+            var authorToPatch = _mapper.Map<AuthorUpdateDto>(author);
+            jsonPatchDocument.ApplyTo(authorToPatch, ModelState);
+            if (!TryValidateModel(authorToPatch))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            _mapper.Map(authorToPatch, author);
+
+            await _authorAPIRepository.UpdateAuthorAsync(author);
+
+            await _authorAPIRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("DeleteAuthorAsync")]
+        public async Task<ActionResult> DeleteAuthorAsync(Guid id)
+        {
+            var author = await _authorAPIRepository.GetAuthorAsync(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            _authorAPIRepository.DeleteAuthor(author);
+
+            await _authorAPIRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
+        #endregion
     }
 }
