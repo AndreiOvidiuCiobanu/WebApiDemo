@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using WebApiDemo.Data;
+using WebApiDemo.Services;
 
 namespace WebApiDemo
 {
@@ -39,10 +40,23 @@ namespace WebApiDemo
 
             services.AddScoped<IAuthorAPIRepository, AuthorAPIRepository>();
 
+            services.AddSingleton<IWeatherInformation, WeatherInformation>();
+
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web API Demo", Version = "v1" });
+            });
+
+            services.AddHttpClient();
+
+            services.AddHttpClient("weatherApi", c =>
+            {
+                c.BaseAddress = new Uri(Configuration.GetValue<string>("MetaAPI"));
+                //// Github API versioning
+                //c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+                //// Github requires a user-agent
+                //c.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactory-Sample");
             });
         }
 

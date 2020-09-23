@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApiDemo.Data;
 using WebApiDemo.Dtos;
 using WebApiDemo.Models;
+using WebApiDemo.Services;
 
 namespace WebApiDemo.Controllers
 {
@@ -17,13 +19,15 @@ namespace WebApiDemo.Controllers
         #region declarations
         private readonly IBookAPIRepository _bookApiRepository;
         private readonly IMapper _mapper;
+        private readonly IWeatherInformation _weatherInformation;
         #endregion
 
         #region constructors
-        public BooksController(IBookAPIRepository bookApiRepository, IMapper mapper)
+        public BooksController(IBookAPIRepository bookApiRepository, IMapper mapper, IHttpClientFactory httpClientFactory, IWeatherInformation weatherInformation)
         {
             _bookApiRepository = bookApiRepository;
             _mapper = mapper;
+            _weatherInformation = weatherInformation;
         }
         #endregion
 
@@ -132,7 +136,7 @@ namespace WebApiDemo.Controllers
         #region asynchronous code
         //GET api/books/getbooksasync
         [HttpGet("GetBooksAsync")]
-        public async Task<ActionResult<IEnumerable<BookReadDto>>> GetBookAsync()
+        public async Task<ActionResult<IEnumerable<BookReadDto>>> GetBooksAsync()
         {
             var books = await _bookApiRepository.GetBooksAsync();
 
@@ -145,6 +149,8 @@ namespace WebApiDemo.Controllers
         public async Task<IActionResult> GetBookAsync(Guid id)
         {
             var book = await _bookApiRepository.GetBookAsync(id);
+
+            var weather = await _weatherInformation.GetWheatherInformation();
 
             return book != null ? Ok(_mapper.Map<BookReadDto>(book)) : (IActionResult)NotFound();
         }
